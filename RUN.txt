@@ -1,0 +1,53 @@
+When recording:
+* Some channels might be faulty (e.g. if you are using B-stick Neuronexus probe this is bound to be the case)
+  Do not remove these channels in OpenEphys while recording - this will screw up the pipeline, which assumes all the channels are there.
+  However do use the pipeline to remove them when processing the recording - doing so is particularly important if you are applying common average referening (CAR).
+
+Data analysis workflow (no file stitching or truncating):
+1.  Copy the recording data on R drive after finishing an experiment.
+2.  Copy the recording data on your local drive (C: or D:).
+3.  Run spikeSortingPipeline.m located in R:\CSN\Shared\Dynamics\Code\sortingPipeline\spike_sorting\. The file also contains an example of how to set up the structure of the input variable.
+    spikeSortingPipeline will rearrange recording channels in correct geometric order, subtract the median, save a file with the median trace, the swap order,
+	and the probe-to-headstage configuration (appended by _medianTrace.mat) and a file containing channel info (forPRB_<probe name>.mat). Kilosort will be run on the
+	re-ordered data and files necessary to run phy will be saved in output folders. Finally, electrode drift map figures will be produced and saved in Drift_plot_all_spikes.fig
+	and Drift_plot_large_spikes.fig files in the output folders.
+4.  Open the .dat file with re-ordered channels in Neuroscope and inspect it.
+5.  Open Anaconda prompt and run phy: activate phy >> cd data directory >> phy template-gui params.py.
+6.  Run postprocessingPipeline.m to extract and save average waveforms (output is saved in the waveforms.mat file). This function also inspects spike sorting cluster quality
+	and saves data in <input dat filename>.qua.1.mat.
+7.  Copy the recording data back on R: drive.
+8.  Run your data analysis scripts.
+
+
+
+Data analysis workflow with file stitching:
+1.  Copy the recording data on R drive after finishing an experiment.
+2.  Copy the recording data on your local drive (C: or D:).
+    Do not rename files and subfolders at any stage until the data is moved back on R:.
+3.  Run spikeSortingPipeline.m located in R:\CSN\Shared\Dynamics\Code\sortingPipeline\spike_sorting\. The file also contains an example of how to set up the structure of the input variable.
+	Make sure you specify files to be stitched. spikeSortingPipeline will rearrange recording channels in correct geometric order, subtract the median, save a file with the median trace, the swap order,
+	and the probe-to-headstage configuration (appended by _medianTrace.mat) and a file containing channel info (forPRB_<probe name>.mat). Kilosort will be run on the
+	re-ordered data and files necessary to run phy will be saved in output folders. Finally, electrode drift map figures will be produced and saved in Drift_plot_all_spikes.fig
+	and Drift_plot_large_spikes.fig files in the output folders.
+4.  Open the stitched dat file with re-ordered channels in Neuroscope and inspect it.
+5.  Open Anaconda prompt and run phy: activate phy >> cd stitched data directory >> phy template-gui params.py.
+6.  Run makeResClu_fromKilosort.m script located in R:\CSN\Shared\Dynamics\Code\matlib\spikes\. Specify dirname, datFilename, nCh, and chsh variables.
+	This will produce res and clu files for the stitched data. Note that this stage is necessary only if you intend to examine stitched files separately or compare them to one another.
+7.  Run zplit_dat.m located in R:\CSN\Shared\Dynamics\Code\matlib\IO\. This will produce res and clu files for individual files that were used to create the stitched data file.
+    The files are saved in the original folders. Note that this stage is necessary only if you intend to examine stitched files separately or compare them to one another.
+8.  Copy npy, py, and csv files from the folder with stitched data to folders with individual files used in stitching.
+9.  Run postprocessingPipeline.m for every file used in stitching separately in order to extract and save average waveforms (output is saved in the waveforms.mat file).
+	This function also inspects spike sorting cluster quality and saves data in <input dat filename>.qua.1.mat.
+10. Copy the recording data back on R drive.
+11. Run your data analysis scripts.
+
+
+
+Data analysis workflow with file splitting (when two probes are used):
+1.  Copy the recording data on R drive after finishing an experiment.
+2.  Copy the recording data on your local drive (C: or D:).
+3.  Create folders for storing files created while processing split recordings (e.g., animal/series/probe1, animal/series/probe2).
+4.  Do not rename files and subfolders at any stage until the data is moved back on R:.
+5.  Run splitChannels Matlab function located in R:\CSN\Shared\Dynamics\Code\sortingPipeline\geometric_layout.
+6.  Run all procedures starting with step 3 in the data pre-processing lists above depending on whether you stitch files or not.
+    The recordings obtained with different probes should be analysed separately.
