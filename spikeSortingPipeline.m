@@ -16,13 +16,14 @@ function spikeSortingPipeline(inp)
 %        io.outputFolders - output folders for saving data files with
 %          channels re-ordered and/or deleted and possibly medians
 %          subtracted depending on the tasks. Each input file has to be
-%          matched by an output folder. If you are merging files, there
-%          also has to be an extra ouput folder specified for stitched
-%          data. Other output files produced by automated Kilosort spike
-%          sorting and electrode drift plots will also be saved in
-%          corresponding output folders. Folders where Kilosort will run
-%          should be free from results from any previous Kilosort runs,
-%          which might create problems.
+%          matched by an output folder. It is the best practice for output
+%          folders to be the same where your binary recording data files
+%          are kept. If you are merging files, there also has to be an
+%          extra ouput folder specified for stitched data. Other output
+%          files produced by automated Kilosort spike sorting and electrode
+%          drift plots will also be saved in corresponding output folders.
+%          Folders where Kilosort will run should be free from results from
+%          any previous Kilosort runs, which might create problems.
 %        io.deleteDataFiles - logical that if true, the files in the
 %          dataFiles input cell array will be deleted; false by default.
 %        conf.probe - a string specifying the probe type. Currently
@@ -34,7 +35,8 @@ function spikeSortingPipeline(inp)
 %          CM16LP-A1x16-Poly2-5mm-50s-177, CM16-A1x16-5mm-25-177,
 %          CM32-A32-Poly2-5mm-50s-177, CM32-A32-Poly3-5mm-25s-177,
 %          CM32-A1x32-6mm-100-177, CM32-A1x32-Edge-5mm-100-177,
-%          H32-A1x32-Edge-5mm-20-177, and H32-Buzsaki32-5mm-BUZ-200-160.
+%          H32-A1x32-Edge-5mm-20-177, H32-Buzsaki32-5mm-BUZ-200-160, and
+%          A16-CambridgeNeuroTech.
 %        conf.probeFlip - a logical that is true if the probe/adaptor was
 %          connected to the headstage upside-down during the recording
 %          session (the labels on the headstage and probe connectors facing
@@ -73,6 +75,7 @@ function spikeSortingPipeline(inp)
 %          kilosort and which version. Available options are:
 %            1 - kilosort 1;
 %            2 - kilosort 2;
+%            3 - kilosort 3;
 %            0 - don't run kilosort (default).
 %        tasks.driftPlot - a logical that if true, displays and saves
 %          electrode drift plots (relevant only if tasks.runKS was true);
@@ -168,13 +171,14 @@ else
      ~strcmpi(probe,'CM16-A1x16-5mm-25-177') && ~strcmpi(probe,'CM32-A32-Poly2-5mm-50s-177') &&...
      ~strcmpi(probe,'CM32-A32-Poly3-5mm-25s-177') && ~strcmpi(probe,'CM32-A1x32-6mm-100-177') &&...
      ~strcmpi(probe,'CM32-A1x32-Edge-5mm-100-177') && ~strcmpi(probe,'H32-A1x32-Edge-5mm-20-177') &&...
-     ~strcmpi(probe,'H32-Buzsaki32-5mm-BUZ-200-160') && ~strcmpi(probe,'Neuropixels')
+     ~strcmpi(probe,'H32-Buzsaki32-5mm-BUZ-200-160') && ~strcmpi(probe,'Neuropixels') &&...
+     ~strcmpi(probe,'A16-CambridgeNeuroTech')
     errMsg = ['probe ' probe ' is not supported. Currently supported probes are A32-A1x32-Edge-5mm-20-177, '...
       'A32-A1x32-5mm-25-177, A32-Buzsaki32-5mm-BUZ-200-160, A32-A1x32-Poly3-5mm-25s-177, A32-A1x32-Poly3-10mm-50-177, '...
       'A64-Buzsaki64-5mm-BUZ-200-160, A64-A4x4-tet-5mm-150-200-121, CM16LP-A2x2-tet-3mm-150-150-121, '...
       'CM16LP-A4x4-3mm-100-125-177, CM16LP-A1x16-Poly2-5mm-50s-177, CM16-A1x16-5mm-25-177, CM32-A1x32-6mm-100-177, '...
       'CM32-A32-Poly2-5mm-50s-177, CM32-A32-Poly3-5mm-25s-177, CM32-A1x32-Edge-5mm-100-177, H32-A1x32-Edge-5mm-20-177, '...
-      'H32-Buzsaki32-5mm-BUZ-200-160, and Neuropixels'];
+      'H32-Buzsaki32-5mm-BUZ-200-160, Neuropixels, and A16-CambridgeNeuroTech'];
     error(['spikeSortingPipeline: ' errMsg])
   end
 end
@@ -188,6 +192,8 @@ end
 if ~isfield(conf, 'headstage') || isempty(conf.headstage)
   if strcmpi(probe(1:4), 'CM16')
     headstage = 'RHD2132_16ch';
+  elseif strcmpi(probe(1:3), 'A16')
+    headstage = 'RHD2164_top';
   elseif strcmpi(probe(1:3), 'A32')
     headstage = 'RHD2164_top';
   elseif strcmpi(probe(1:3), 'A64')
@@ -207,7 +213,8 @@ else
   end
   if (strcmp(probe,'Neuropixels') && ~strcmp(headstage,'Neuropixels')) ||...
       (strcmpi(probe(1:3),'A64') && ~strcmp(headstage,'RHD2164')) ||...
-      (strcmpi(probe(1:3),'A32') && (~strcmp(headstage,'RHD2164_top') && ~strcmp(headstage,'RHD2164_bottom') && ~strcmp(headstage,'RHD2164'))) ||...
+      (strcmpi(probe(1:3),'A16') && (~strcmp(headstage,'RHD2132_32ch') && ~strcmp(headstage,'RHD2164_top') && ~strcmp(headstage,'RHD2164_bottom') && ~strcmp(headstage,'RHD2164'))) ||...
+      (strcmpi(probe(1:3),'A32') && (~strcmp(headstage,'RHD2132_32ch') && ~strcmp(headstage,'RHD2164_top') && ~strcmp(headstage,'RHD2164_bottom') && ~strcmp(headstage,'RHD2164'))) ||...
       ((strcmpi(probe(1:3),'H32') || strcmpi(probe(1:4),'CM32')) &&...
       (~strcmp(headstage,'RHD2132_32ch') && ~strcmp(headstage,'RHD2164_top') && ~strcmp(headstage,'RHD2164_bottom'))) ||...
       (strcmpi(probe(1:4), 'CM16') && ~strcmp(headstage,'RHD2132_16ch'))
@@ -334,8 +341,13 @@ if stitchFiles
     probeConfFile = [outputFolders{iFile+1} filesep 'forPRB_' probe2headstageConf.probeConf.probe '.mat'];
     save(probeConfFile, 'chanMap', 'chanMap0ind', 'connected', 'shankInd', 'xcoords', 'ycoords', '-v7.3'); %#ok<*USENS>
   else
-    probeConfFile = dir([outputFolders{iFile+1} filesep 'forPRB*.mat']);
-    probeConfFile = probeConfFile.name;
+    if ~exist([outputFolders{iFile+1} filesep 'forPRB*.mat'], 'file')
+      error(['You must have a probe channel map file in the same folder as your binary recording file in the form forPRB*.mat.'...
+        'If not, then you must specify inp.tasks.chanMap = true.']);
+    else
+      probeConfFile = dir([outputFolders{iFile+1} filesep 'forPRB*.mat']);
+      probeConfFile = probeConfFile.name;
+    end
   end
   ops.chanMap = probeConfFile;
   fix_dat_stitch(dataFiles, ops.NchanTOT, samplingFrequency, stitchedDataFile);
@@ -352,6 +364,8 @@ if stitchFiles
         addpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort\CUDA\CUDA10')
       elseif  verLessThan('matlab', '9.8') % add CUDA10.1 mex file directory
         addpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort\CUDA\CUDA101')
+      elseif  verLessThan('matlab', '9.9') % add CUDA10.2 mex file directory
+        addpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort\CUDA\CUDA102')
       end
     elseif runKS == 2
       addpath(genpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort2'))
@@ -365,6 +379,17 @@ if stitchFiles
         addpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort2\CUDA\CUDA10')
       elseif  verLessThan('matlab', '9.8') % add CUDA10.1 mex file directory
         addpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort2\CUDA\CUDA101')
+      elseif  verLessThan('matlab', '9.9') % add CUDA10.2 mex file directory
+        addpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort2\CUDA\CUDA102')
+      end
+    elseif runKS == 3
+      addpath(genpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort3'))
+      rmpath(genpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort3\.git'))
+      rmpath(genpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort3\CUDA'))
+      if  verLessThan('matlab', '9.8') % add CUDA10.1 mex file directory
+        addpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort3\CUDA\CUDA101')
+      elseif  verLessThan('matlab', '9.9') % add CUDA10.2 mex file directory
+        addpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort3\CUDA\CUDA102')
       end
     end
     
@@ -387,6 +412,19 @@ if stitchFiles
       ops.nfilt_factor = tempFact;
       try
         ks_master_file2;
+      catch me
+        if exist(ops.fproc, 'file')
+          delete(ops.fproc);
+        end
+        disp(getReport(me))
+        throw(me);
+      end
+    elseif runKS == 3
+      [~, ops.root, ops.fproc, ops.fbinary] = initKS(ops.NchanTOT, outputFolders{iFile+1},...
+        procFolders{1}, stitchedDataFile, true, tempFact);
+      ops.nfilt_factor = tempFact;
+      try
+        ks_master_file3;
       catch me
         if exist(ops.fproc, 'file')
           delete(ops.fproc);
@@ -426,6 +464,8 @@ else
           addpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort\CUDA\CUDA10')
         elseif  verLessThan('matlab', '9.8') % add CUDA10.1 mex file directory
           addpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort\CUDA\CUDA101')
+        elseif  verLessThan('matlab', '9.9') % add CUDA10.2 mex file directory
+          addpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort\CUDA\CUDA102')
         end
       elseif runKS == 2
         addpath(genpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort2'))
@@ -439,12 +479,28 @@ else
           addpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort2\CUDA\CUDA10')
         elseif  verLessThan('matlab', '9.8') % add CUDA10.1 mex file directory
           addpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort2\CUDA\CUDA101')
+        elseif  verLessThan('matlab', '9.9') % add CUDA10.2 mex file directory
+          addpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort2\CUDA\CUDA102')
+        end
+      elseif runKS == 3
+        addpath(genpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort3'))
+        rmpath(genpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort3\.git'))
+        rmpath(genpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort3\CUDA'))
+        if  verLessThan('matlab', '9.8') % add CUDA10.1 mex file directory
+          addpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort3\CUDA\CUDA101')
+        elseif  verLessThan('matlab', '9.9') % add CUDA10.2 mex file directory
+          addpath('R:\Neuropix\Shared\Code\github_cortex-lab_KiloSort3\CUDA\CUDA102')
         end
       end
       
       if ~chanMapFile
-        ops.chanMap = dir([fileparts(dataFiles{iFile}) filesep 'forPRB*.mat']);
-        ops.chanMap = ops.chanMap.name;
+        if ~exist([fileparts(dataFiles{iFile}) filesep 'forPRB*.mat'], 'file')
+          error(['You must have a probe channel map file in the same folder as your binary recording file in the form forPRB*.mat.'...
+            'If not, then you must specify inp.tasks.chanMap = true.']);
+        else
+          ops.chanMap = dir([fileparts(dataFiles{iFile}) filesep 'forPRB*.mat']);
+          ops.chanMap = ops.chanMap.name;
+        end
       end
       load(ops.chanMap);
       if runKS == 1
@@ -465,6 +521,19 @@ else
         ops.nfilt_factor = tempFact;
         try
           ks_master_file2;
+        catch me
+          if exist(ops.fproc, 'file')
+            delete(ops.fproc);
+          end
+          disp(getReport(me))
+          throw(me);
+        end
+      elseif runKS == 3
+        [~, ops.root, ops.fproc, ops.fbinary] = initKS(ops.NchanTOT, outputFolders{iFile},...
+          procFolders{iFile}, dataFiles{iFile}, false, tempFact);
+        ops.nfilt_factor = tempFact;
+        try
+          ks_master_file3;
         catch me
           if exist(ops.fproc, 'file')
             delete(ops.fproc);
@@ -507,7 +576,7 @@ fclose('all');
 
 
 %% Inspect electrode drift
-if drift
+if drift && runKS < 3
   close all
   if stitchFiles
     [spikeTimes, spikeAmps, spikeDepths] = ksDriftmap(outputFolders{end});
@@ -542,7 +611,7 @@ function [Nfilt, root, fproc, fbinary] = initKS(Nchan, root, proc, dataFile, sti
 if stitchFiles
   Nfilt = ceil(tempFact*(Nchan-1)/32)*32; % number of filters to use (2-4 times more than Nchan, should be divisible by 32)
 else
-  Nfilt = ceil(tempFact*(Nchan-1)/32)*32; %Nfilt = ceil(3*Nchan/32)*32; % number of filters to use (2-4 times more than Nchan, should be divisible by 32)
+  Nfilt = ceil(tempFact*(Nchan-1)/32)*32; % Nfilt = ceil(3*Nchan/32)*32; % number of filters to use (2-4 times more than Nchan, should be divisible by 32)
 end
 fproc = fullfile(proc, 'temp_wh.dat');
 fbinary = dataFile;

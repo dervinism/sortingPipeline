@@ -16,7 +16,7 @@ else
   ops.datatype            = 'dat';
 end
 
-ops.fs                  = 30000;        % sampling rate
+ops.fs                  = samplingFrequency;        % sampling rate
 % ops.NchanTOT            = 32;           % total number of channels
 % ops.Nchan               = sum(connected);           % number of active channels 
 % ops.Nfilt               = 768;           % number of filters to use (2-4 times more than Nchan, should be a multiple of 32)     

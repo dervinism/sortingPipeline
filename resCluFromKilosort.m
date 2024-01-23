@@ -1,4 +1,4 @@
-function [clu, res, templates] = resCluFromKilosort(dirname, shankOI, shCh, chOI, probeFile)
+function [clu, res, templates, chanMap] = resCluFromKilosort(dirname, shankOI, shCh, chOI, probeFile)
 % [clu, res, templates] = resCluFromKilosort(dirname, shankOI, shCh, chOI)
 %
 % This function extracts clu, res and templates variables from a kilosort
@@ -22,6 +22,11 @@ function [clu, res, templates] = resCluFromKilosort(dirname, shankOI, shCh, chOI
 %                order to obtain the spike times. The following is true:
 %                numel(res) == numel(clu)-1.
 %          templates is templates = clu(2:end).
+%          chanMap - unit channel locations. First column of the matrix
+%                    contain cluster IDs, the second one contains probe
+%                    channels, while the third one is the cluster type:
+%                    0 - noise, 1 - mua, or a cluster ID if it is a single
+%                    unit.
 
 if nargin < 5
   probeFile = [];
@@ -82,6 +87,14 @@ oi = zeros(size(clu)); % will be 1 if resides on the channel of interest
 
 if ~isempty(probeFile)
   load(probeFile, 'ycoords','xcoords')
+  ycoordsUnique = unique(ycoords);
+  ycoordsCount = zeros(size(ycoords));
+  for iCoord = 1:numel(ycoordsUnique)
+    ycoordsCount(ycoords == ycoordsUnique(iCoord)) = sum(ycoords == ycoordsUnique(iCoord));
+  end
+  if numel(ycoords) <= 65
+    ycoordsCount = ycoordsCount./min(ycoordsCount(ycoordsCount > 0));
+  end
 end
 
 chanMap = [];
@@ -116,10 +129,15 @@ for u = torow(uClu)
   else
     pos = ceil(pos / size(w, 1));
     ycoordCh = ycoordsCh(pos);
+    if exist('ycoordsCount','var')
+      ycoordChCount = ycoordsCount(pos);
+    else
+      ycoordChCount = 1;
+    end
     xcoordCh = xcoordsCh(pos);
     posY = find(ycoordCh == ycoords);
     posX = find(xcoordCh == xcoords(posY));
-    pos = posY(1) + posX - 1;
+    pos = posY(1) + floor((posX - 1)/ycoordChCount)*shCh;
     sh(clu == u) = ceil(pos/shCh);
     fprintf('Unit %d, on ch %d(%d) ==> it''s on shank %d and is ', u, pos, pos-1, ceil(pos/shCh))
     oi(clu == u) = sum(pos == chOI);

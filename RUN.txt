@@ -9,7 +9,7 @@ Data analysis workflow (no file stitching or truncating):
 3.  Run spikeSortingPipeline.m located in R:\CSN\Shared\Dynamics\Code\sortingPipeline\spike_sorting\. The file also contains an example of how to set up the structure of the input variable.
     spikeSortingPipeline will rearrange recording channels in correct geometric order, subtract the median, save a file with the median trace, the swap order,
 	and the probe-to-headstage configuration (appended by _medianTrace.mat) and a file containing channel info (forPRB_<probe name>.mat). Kilosort will be run on the
-	re-ordered data and files necessary to run phy will be saved in output folders. Finally, electrode drift map figures will be produced and saved in Drift_plot_all_spikes.fig
+	re-ordered data, and files necessary to run phy will be saved in output folders. Finally, electrode drift map figures will be produced and saved in Drift_plot_all_spikes.fig
 	and Drift_plot_large_spikes.fig files in the output folders.
 4.  Open the .dat file with re-ordered channels in Neuroscope and inspect it.
 5.  Open Anaconda prompt and run phy: activate phy >> cd data directory >> phy template-gui params.py.
@@ -31,9 +31,9 @@ Data analysis workflow with file stitching:
 	and Drift_plot_large_spikes.fig files in the output folders.
 4.  Open the stitched dat file with re-ordered channels in Neuroscope and inspect it.
 5.  Open Anaconda prompt and run phy: activate phy >> cd stitched data directory >> phy template-gui params.py.
-6.  Run makeResClu_fromKilosort.m script located in R:\CSN\Shared\Dynamics\Code\matlib\spikes\. Specify dirname, datFilename, nCh, and chsh variables.
-	This will produce res and clu files for the stitched data. Note that this stage is necessary only if you intend to examine stitched files separately or compare them to one another.
-7.  Run zplit_dat.m located in R:\CSN\Shared\Dynamics\Code\matlib\IO\. This will produce res and clu files for individual files that were used to create the stitched data file.
+6.  Run makeResClu_fromKilosort_MD.m script located in R:\CSN\Shared\Dynamics\Code\matlib\spikes\. Specify dirname, datFilename, nCh, and chsh variables.
+	This will produce res, clu, and tmpl files for the stitched data. Note that this stage is necessary only if you intend to examine stitched files separately or compare them to one another.
+7.  Run zplit_dat_MD.m located in R:\CSN\Shared\Dynamics\Code\matlib\IO\. This will produce res, clu, and tmpl files for individual files that were used to create the stitched data file.
     The files are saved in the original folders. Note that this stage is necessary only if you intend to examine stitched files separately or compare them to one another.
 8.  Copy npy, py, and csv files from the folder with stitched data to folders with individual files used in stitching.
 9.  Run postprocessingPipeline.m for every file used in stitching separately in order to extract and save average waveforms (output is saved in the waveforms.mat file).

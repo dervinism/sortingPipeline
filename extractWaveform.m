@@ -62,6 +62,15 @@ else
 end
 
 
+%% Find the probe configuration file
+% fileList = dir([dataDir filesep 'forPRB*.mat']);
+% if isempty(fileList)
+%   error('The data processing folder is missing the forPRB*.mat file containing probe configuration.');
+% elseif numel(fileList) > 1
+%   error('There is more than one forPRB*.mat file in the data processing folder. Please remove conflicting files.');
+% end
+  
+
 %% Extract the spike cluster info and template waveforms
 sp = loadKSdir(dataDir);
 cluFull = sp.clu;
@@ -78,6 +87,7 @@ for sh = 1:16
     res = [res; resSh];    
     clu = [clu; cluSh];
   elseif sh == 1
+    %[clu, res] = resCluFromKilosort(dataDir, 1, 10000, 1:10000, [dataDir filesep fileList.name]);
     [clu, res] = resCluFromKilosort(dataDir, 1, 10000, 1:10000);
     clu = clu(2:end);
   end
@@ -325,11 +335,13 @@ end
 for iFile = 1:nFiles
   emptyCount = ones(1,numel(cluIDs));
   for iClu = 1:numel(cluIDs)
-    if nAmplitudes{iFile}(iClu) < 300
+    if nAmplitudes{iFile}(iClu) < 1 %300
       emptyCount(iClu) = 0;
     end
   end
   emptyCount = logical(emptyCount);
+  cluIDs(~emptyCount) = []; % BD
+  % cluIDs{iFile}(~emptyCount) = [];
   waveforms{iFile}(~emptyCount,:,:) = [];
   amplitudes{iFile}(~emptyCount) = [];
   maxWaveforms{iFile}(~emptyCount,:) = [];

@@ -7,9 +7,10 @@ sp = loadKSdir(ksdir);
 res = sp.st * sp.sample_rate;
 u_clu = sort(unique(sp.clu), 'ascend');
 
-if ~isempty(setxor(u_clu, sp.cids)) 
-  error(['some incompatibility in the units: ' num2str(setxor(u_clu, sp.cids))])
+if ~isempty(setdiff(u_clu, sp.cids))
+  error(['sp.clu has units not in sp.cids: ' num2str(setdiff(u_clu, sp.cids))])
 end
+u_clu = sp.cids';
 
 if u_clu(1) == 0 % convert template 0 to the next available id, as 0 will be reserved for noise clusters
   sp.clu(sp.clu == 0) = u_clu(end) + 1;

@@ -4,7 +4,7 @@
 % 1. computing the average spikewaveforms of the units (by averageing the raw recorded voltage traces)
 % 2. calculating the quality of each unit
 % Inputs: binaryFilename - the full name of the binary file (on which Kilosort ran)
-%              noAIchans - number of AI (analog input) channels, which are not about the silicon probe (typically the last channels)
+%              noAIchans - number of AI (analog input) channels, which are not about the silicon probe (typically the last channel)
 %                     sr - sampling rate of the binary file (in Hz, 3e4 by default)
 function postprocessingPipeline(binaryFilename, noAIchans, sr)
 if nargin < 3
